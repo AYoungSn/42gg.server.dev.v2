@@ -9,6 +9,7 @@ import com.gg.server.global.security.jwt.utils.TokenHeaders;
 import com.gg.server.global.utils.ApplicationYmlRead;
 import com.gg.server.global.utils.argumentresolver.Login;
 import io.swagger.v3.oas.annotations.Parameter;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
@@ -23,10 +24,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/pingpong/users")
 public class UserController {
-
     private final UserService userService;
     private final AppProperties appProperties;
-
     private final ApplicationYmlRead applicationYmlRead;
 
     @PostMapping("/accesstoken")
@@ -75,5 +74,27 @@ public class UserController {
                 userModifyRequestDto.getSnsNotiOpt(), intraId);
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
+
+    /**
+     *기존 카카오 유저 42 로그인 인증
+     */
+    @GetMapping("/oauth/42")
+    public void oauth42(HttpServletResponse response, @ModelAttribute @Valid UserAuthorizationDto authDto,
+                           @Parameter(hidden = true) UserDto user) throws IOException {
+        CookieUtil.addCookie(response, TokenHeaders.ACCESS_TOKEN, authDto.getAccessToken(), authDto.getMaxAge(), applicationYmlRead.getDomain());
+        response.sendRedirect(applicationYmlRead.getDomain() + "/oauth2/authorization/42");
+    }
+    /**
+     *기존 42user 카카오 로그인 인증
+     */
+    @GetMapping("/oauth/kakao")
+    public void oauthKakao(HttpServletResponse response, @ModelAttribute @Valid UserAuthorizationDto authDto,
+         @Parameter(hidden = true) UserDto user) throws IOException {
+        System.out.println("authDto = " + authDto.getAccessToken());
+        System.out.println("authDto = " + authDto.getMaxAge());
+        CookieUtil.addCookie(response, TokenHeaders.ACCESS_TOKEN, authDto.getAccessToken(), authDto.getMaxAge(), applicationYmlRead.getDomain());
+//        response.sendRedirect(applicationYmlRead.getDomain() + "/oauth2/authorization/42");
+    }
+
 
 }
